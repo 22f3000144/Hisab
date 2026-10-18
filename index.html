@@ -1,0 +1,849 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Amount Tracker</title>
+
+    <style>
+        :root {
+            --navy: #18324b;
+            --navy-deep: #102438;
+            --beige: #f2eadb;
+            --beige-light: #fbf8f1;
+            --accent: #c58a3a;
+            --accent-dark: #895b1e;
+            --white: #ffffff;
+            --text: #24384a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px 15px;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: var(--beige);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 20px auto;
+            padding: 25px;
+            background: var(--beige-light);
+            border-radius: 20px;
+            box-shadow: 0 8px 25px #18324b18;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--navy);
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--navy);
+            margin-bottom: 25px;
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid #d8cbb5;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            background: var(--white);
+            color: var(--text);
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px #c58a3a30;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 10px;
+            background: var(--navy);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.88;
+        }
+
+        .month-navigation {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 20px 0 12px;
+        }
+
+        .month-navigation h2 {
+            margin: 0;
+            color: var(--navy);
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .month-button,
+        .save-button,
+        .delete-button {
+            width: auto;
+            margin: 0;
+            padding: 10px 14px;
+        }
+
+        .month-button {
+            background: var(--beige);
+            color: var(--navy);
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .weekday {
+            padding: 8px 2px;
+            color: var(--navy);
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .calendar-day,
+        .empty-day {
+            min-height: 68px;
+            padding: 7px 3px;
+            border: 1px solid #d8cbb5;
+            border-radius: 10px;
+        }
+
+        .calendar-day {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 4px;
+            margin: 0;
+            background: var(--white);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .calendar-day:hover {
+            background: var(--beige);
+            opacity: 1;
+        }
+
+        .calendar-day.selected {
+            border: 2px solid var(--accent);
+            background: var(--beige);
+        }
+
+        .calendar-day.today .day-number {
+            color: var(--navy);
+            font-weight: bold;
+        }
+
+        .day-amount {
+            max-width: 100%;
+            overflow: hidden;
+            color: var(--navy);
+            font-size: 10px;
+            text-overflow: ellipsis;
+        }
+
+        .day-item {
+            max-width: 100%;
+            overflow: hidden;
+            color: var(--accent-dark);
+            font-size: 9px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .empty-day {
+            border-color: transparent;
+        }
+
+        .monthly-total {
+            margin: 16px 0;
+            padding: 16px;
+            border-radius: 14px;
+            background: var(--beige);
+            text-align: center;
+        }
+
+        .monthly-total p {
+            margin: 0 0 6px;
+        }
+
+        .monthly-total strong {
+            color: var(--navy);
+            font-size: 26px;
+        }
+
+        .analysis {
+            margin-top: 18px;
+            padding: 16px;
+            border: 1px solid #d8cbb5;
+            border-radius: 14px;
+        }
+
+        .analysis-toggle {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .analysis h2 {
+            margin: 0 0 14px;
+            color: var(--navy);
+            font-size: 18px;
+        }
+
+        .analysis h3 {
+            margin: 0 0 8px;
+            color: var(--navy);
+            font-size: 14px;
+        }
+
+        .analysis-summary {
+            margin: 0 0 18px;
+            padding: 13px;
+            border-radius: 10px;
+            background: var(--beige);
+        }
+
+        .analysis-summary strong {
+            display: block;
+            color: var(--navy);
+            font-size: 18px;
+        }
+
+        .analysis-summary p,
+        .analysis-empty {
+            margin: 5px 0 0;
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .item-breakdown {
+            display: grid;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .item-breakdown li {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8dfd1;
+            font-size: 14px;
+        }
+
+        .item-breakdown li:last-child {
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+
+        .item-breakdown strong {
+            flex: 0 0 auto;
+            color: var(--navy);
+        }
+
+        .daily-entry {
+            margin-top: 18px;
+            padding: 16px;
+            border: 1px solid #d8cbb5;
+            border-radius: 14px;
+        }
+
+        .daily-entry h2 {
+            margin: 0 0 12px;
+            color: var(--navy);
+            font-size: 18px;
+        }
+
+        .amount-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .item-rows {
+            display: grid;
+            gap: 10px;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-row input {
+            width: 100%;
+        }
+
+        .item-row .item-name-input {
+            flex: 2;
+        }
+
+        .item-row .item-amount-input {
+            flex: 1;
+        }
+
+        .remove-item-button {
+            width: 42px;
+            flex: 0 0 42px;
+            margin: 0;
+            padding: 10px;
+            background: var(--beige);
+            color: var(--navy);
+        }
+
+        .add-item-button {
+            width: auto;
+            margin: 12px 0 0;
+            padding: 9px 14px;
+            background: var(--accent);
+            color: var(--navy-deep);
+        }
+
+        .save-button {
+            width: auto;
+            flex: 0 0 auto;
+            margin: 14px 0 0;
+        }
+
+        .save-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .delete-button {
+            margin-top: 14px;
+            background: var(--white);
+            color: var(--navy);
+            border: 1px solid #cbbda7;
+        }
+
+        .message {
+            min-height: 20px;
+            margin: 10px 0 0;
+            color: var(--navy);
+            font-size: 13px;
+        }
+
+        @media (max-width: 420px) {
+            .container {
+                padding: 18px 12px;
+            }
+
+            .calendar {
+                gap: 3px;
+            }
+
+            .calendar-day,
+            .empty-day {
+                min-height: 58px;
+            }
+
+            .calendar-day {
+                min-height: 72px;
+                padding: 5px 2px;
+            }
+
+            .day-item {
+                font-size: 8px;
+            }
+
+            .item-row {
+                flex-wrap: wrap;
+            }
+
+            .item-row .item-name-input,
+            .item-row .item-amount-input {
+                flex: 1 1 40%;
+            }
+
+            .remove-item-button {
+                flex: 0 0 36px;
+                width: 36px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <h1>Daily Amount Tracker</h1>
+        <p class="subtitle">Add multiple items each day and track your monthly total</p>
+
+        <section class="monthly-total" aria-live="polite">
+            <p id="month-total-label">Monthly total</p>
+            <strong id="month-total">₹0.00</strong>
+            <p id="entry-count">0 days recorded</p>
+        </section>
+
+        <button type="button" class="analysis-toggle" id="analysis-toggle" aria-expanded="false" aria-controls="analysis">
+            Analysis
+        </button>
+
+        <div class="month-navigation">
+            <button type="button" class="month-button" id="previous-month" aria-label="Previous month">‹</button>
+            <h2 id="month-heading"></h2>
+            <button type="button" class="month-button" id="next-month" aria-label="Next month">›</button>
+        </div>
+
+        <section class="calendar" id="calendar" aria-label="Expense calendar"></section>
+
+        <section class="analysis" id="analysis" aria-labelledby="analysis-heading" hidden>
+            <h2 id="analysis-heading">Analysis</h2>
+            <p class="analysis-empty" id="analysis-empty">No spending recorded for this month yet.</p>
+            <div id="analysis-content" hidden>
+                <div class="analysis-summary">
+                    <h3>Highest spending day</h3>
+                    <strong id="highest-spending-amount"></strong>
+                    <p id="highest-spending-date"></p>
+                </div>
+                <h3>Spending by item</h3>
+                <ul class="item-breakdown" id="item-breakdown"></ul>
+            </div>
+        </section>
+
+        <section class="daily-entry">
+            <h2 id="selected-date-heading">Items for selected day</h2>
+            <div class="item-rows" id="item-rows"></div>
+            <button type="button" class="add-item-button" id="add-item">+ Add another item</button>
+            <div class="save-actions">
+                <button type="button" class="save-button" id="save-amount">Save items</button>
+                <button type="button" class="delete-button" id="delete-amount">Remove all items for this day</button>
+            </div>
+            <p class="message" id="message" role="status" aria-live="polite"></p>
+        </section>
+    </main>
+
+    <script>
+        const storageKey = "daily-amount-tracker-entries";
+        const calendar = document.getElementById("calendar");
+        const itemRows = document.getElementById("item-rows");
+        const message = document.getElementById("message");
+        const monthHeading = document.getElementById("month-heading");
+        const monthTotal = document.getElementById("month-total");
+        const entryCount = document.getElementById("entry-count");
+        const selectedDateHeading = document.getElementById("selected-date-heading");
+        const analysisToggle = document.getElementById("analysis-toggle");
+        const analysisSection = document.getElementById("analysis");
+        const analysisEmpty = document.getElementById("analysis-empty");
+        const analysisContent = document.getElementById("analysis-content");
+        const highestSpendingAmount = document.getElementById("highest-spending-amount");
+        const highestSpendingDate = document.getElementById("highest-spending-date");
+        const itemBreakdown = document.getElementById("item-breakdown");
+        const saveButton = document.getElementById("save-amount");
+        const deleteButton = document.getElementById("delete-amount");
+        const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const today = new Date();
+
+        let entries = {};
+        let displayedMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        let selectedDate = formatDateKey(today);
+
+        function formatDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDisplayDate(dateKey) {
+            const [year, month, day] = dateKey.split("-").map(Number);
+            return new Date(year, month - 1, day).toLocaleDateString(
+                undefined,
+                { weekday: "long", year: "numeric", month: "long", day: "numeric" }
+            );
+        }
+
+        function loadEntries() {
+            try {
+                const savedEntries = localStorage.getItem(storageKey);
+                if (savedEntries === null) {
+                    entries = {};
+                    return;
+                }
+
+                const parsedEntries = JSON.parse(savedEntries);
+                if (
+                    parsedEntries === null ||
+                    typeof parsedEntries !== "object" ||
+                    Array.isArray(parsedEntries)
+                ) {
+                    throw new Error("Saved entries are not in the expected format.");
+                }
+
+                const normalizedEntries = {};
+                for (const [date, savedEntry] of Object.entries(parsedEntries)) {
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                        throw new Error("A saved daily amount is invalid.");
+                    }
+
+                    const savedItems = Array.isArray(savedEntry)
+                        ? savedEntry
+                        : [savedEntry];
+                    normalizedEntries[date] = savedItems.map((entry) => {
+                        const amount =
+                            typeof entry === "number" ? entry : entry?.amount;
+                        const itemName =
+                            typeof entry === "number" ? "" : entry?.itemName;
+                        if (
+                            typeof amount !== "number" ||
+                            !Number.isFinite(amount) ||
+                            amount < 0 ||
+                            typeof itemName !== "string"
+                        ) {
+                            throw new Error("A saved daily amount is invalid.");
+                        }
+                        return { amount, itemName };
+                    });
+                }
+
+                entries = normalizedEntries;
+            } catch (error) {
+                message.textContent = `Could not load saved amounts: ${error.message}`;
+                saveButton.disabled = true;
+                document.getElementById("add-item").disabled = true;
+                deleteButton.disabled = true;
+            }
+        }
+
+        function renderCalendar() {
+            const year = displayedMonth.getFullYear();
+            const month = displayedMonth.getMonth();
+            monthHeading.textContent = displayedMonth.toLocaleDateString(
+                undefined,
+                { year: "numeric", month: "long" }
+            );
+            calendar.replaceChildren();
+
+            for (const weekday of weekdays) {
+                const heading = document.createElement("div");
+                heading.className = "weekday";
+                heading.textContent = weekday;
+                calendar.appendChild(heading);
+            }
+
+            const firstWeekday = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let blank = 0; blank < firstWeekday; blank += 1) {
+                const emptyDay = document.createElement("div");
+                emptyDay.className = "empty-day";
+                emptyDay.setAttribute("aria-hidden", "true");
+                calendar.appendChild(emptyDay);
+            }
+
+            for (let day = 1; day <= daysInMonth; day += 1) {
+                const dateKey = formatDateKey(new Date(year, month, day));
+                const dayButton = document.createElement("button");
+                dayButton.type = "button";
+                dayButton.className = "calendar-day";
+                dayButton.setAttribute("aria-label", formatDisplayDate(dateKey));
+
+                if (dateKey === selectedDate) {
+                    dayButton.classList.add("selected");
+                    dayButton.setAttribute("aria-pressed", "true");
+                } else {
+                    dayButton.setAttribute("aria-pressed", "false");
+                }
+
+                if (dateKey === formatDateKey(today)) {
+                    dayButton.classList.add("today");
+                }
+
+                const number = document.createElement("span");
+                number.className = "day-number";
+                number.textContent = String(day);
+                dayButton.appendChild(number);
+
+                if (Object.prototype.hasOwnProperty.call(entries, dateKey)) {
+                    const dayItems = entries[dateKey];
+                    const itemNames = dayItems
+                        .slice(0, 2)
+                        .map((entry) => entry.itemName || "Item");
+                    for (const itemName of itemNames) {
+                        const item = document.createElement("span");
+                        item.className = "day-item";
+                        item.textContent = itemName;
+                        dayButton.appendChild(item);
+                    }
+                    if (dayItems.length > 2) {
+                        const more = document.createElement("span");
+                        more.className = "day-item";
+                        more.textContent = `+${dayItems.length - 2} more`;
+                        dayButton.appendChild(more);
+                    }
+                    const dayTotal = dayItems.reduce(
+                        (sum, entry) => sum + entry.amount,
+                        0
+                    );
+                    const amount = document.createElement("span");
+                    amount.className = "day-amount";
+                    amount.textContent = `₹${dayTotal.toFixed(2)}`;
+                    dayButton.setAttribute(
+                        "aria-label",
+                        `${formatDisplayDate(dateKey)}: ${dayItems.length} ${dayItems.length === 1 ? "item" : "items"}, ₹${dayTotal.toFixed(2)}`
+                    );
+                    dayButton.appendChild(amount);
+                }
+
+                dayButton.addEventListener("click", () => {
+                    selectedDate = dateKey;
+                    render();
+                });
+                calendar.appendChild(dayButton);
+            }
+        }
+
+        function renderMonthlyTotal() {
+            const monthPrefix = `${displayedMonth.getFullYear()}-${String(
+                displayedMonth.getMonth() + 1
+            ).padStart(2, "0")}-`;
+            const monthlyAmounts = Object.entries(entries).filter(
+                ([date]) => date.startsWith(monthPrefix)
+            );
+            const total = monthlyAmounts.reduce(
+                (sum, [, dayItems]) =>
+                    sum + dayItems.reduce((dayTotal, entry) => dayTotal + entry.amount, 0),
+                0
+            );
+
+            monthTotal.textContent = `₹${total.toFixed(2)}`;
+            entryCount.textContent =
+                `${monthlyAmounts.length} ${monthlyAmounts.length === 1 ? "day" : "days"} recorded`;
+            document.getElementById("month-total-label").textContent =
+                `${monthHeading.textContent} total`;
+        }
+
+        function renderAnalysis() {
+            const monthPrefix = `${displayedMonth.getFullYear()}-${String(
+                displayedMonth.getMonth() + 1
+            ).padStart(2, "0")}-`;
+            const monthlyEntries = Object.entries(entries).filter(
+                ([date]) => date.startsWith(monthPrefix)
+            );
+
+            itemBreakdown.replaceChildren();
+            if (monthlyEntries.length === 0) {
+                analysisEmpty.hidden = false;
+                analysisContent.hidden = true;
+                return;
+            }
+
+            const dailyTotals = monthlyEntries.map(([date, dayItems]) => ({
+                date,
+                total: dayItems.reduce((sum, entry) => sum + entry.amount, 0)
+            }));
+            dailyTotals.sort((a, b) => b.total - a.total);
+            highestSpendingAmount.textContent = `₹${dailyTotals[0].total.toFixed(2)}`;
+            highestSpendingDate.textContent = formatDisplayDate(dailyTotals[0].date);
+
+            const itemTotals = new Map();
+            for (const [, dayItems] of monthlyEntries) {
+                for (const entry of dayItems) {
+                    const itemName = entry.itemName.trim() || "Item";
+                    const key = itemName.toLocaleLowerCase();
+                    const existing = itemTotals.get(key);
+                    if (existing) {
+                        existing.amount += entry.amount;
+                    } else {
+                        itemTotals.set(key, { itemName, amount: entry.amount });
+                    }
+                }
+            }
+
+            const sortedItems = Array.from(itemTotals.values()).sort(
+                (a, b) => b.amount - a.amount || a.itemName.localeCompare(b.itemName)
+            );
+            for (const item of sortedItems) {
+                const row = document.createElement("li");
+                const name = document.createElement("span");
+                name.textContent = item.itemName;
+                const amount = document.createElement("strong");
+                amount.textContent = `₹${item.amount.toFixed(2)}`;
+                row.append(name, amount);
+                itemBreakdown.appendChild(row);
+            }
+
+            analysisEmpty.hidden = true;
+            analysisContent.hidden = false;
+        }
+
+        function render() {
+            renderCalendar();
+            renderMonthlyTotal();
+            renderAnalysis();
+            selectedDateHeading.textContent = `Items for ${formatDisplayDate(selectedDate)}`;
+            const dayItems = entries[selectedDate] || [];
+            itemRows.replaceChildren();
+            if (dayItems.length === 0) {
+                addItemRow();
+            } else {
+                for (const entry of dayItems) {
+                    addItemRow(entry);
+                }
+            }
+        }
+
+        function addItemRow(entry = { itemName: "", amount: "" }) {
+            const row = document.createElement("div");
+            row.className = "item-row";
+
+            const nameInput = document.createElement("input");
+            nameInput.type = "text";
+            nameInput.className = "item-name-input";
+            nameInput.maxLength = 80;
+            nameInput.placeholder = "Item name";
+            nameInput.setAttribute("aria-label", "Item name");
+            nameInput.value = entry.itemName;
+
+            const amountInput = document.createElement("input");
+            amountInput.type = "number";
+            amountInput.className = "item-amount-input";
+            amountInput.min = "0";
+            amountInput.step = "0.01";
+            amountInput.inputMode = "decimal";
+            amountInput.placeholder = "Amount (₹)";
+            amountInput.setAttribute("aria-label", "Item amount in rupees");
+            amountInput.value = entry.amount;
+
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "remove-item-button";
+            removeButton.textContent = "×";
+            removeButton.setAttribute("aria-label", "Remove this item row");
+            removeButton.addEventListener("click", () => {
+                row.remove();
+                if (itemRows.children.length === 0) {
+                    addItemRow();
+                }
+            });
+
+            row.append(nameInput, amountInput, removeButton);
+            itemRows.appendChild(row);
+        }
+
+        function saveAmount() {
+            const savedItems = [];
+            for (const row of itemRows.querySelectorAll(".item-row")) {
+                const itemName = row.querySelector(".item-name-input").value.trim();
+                const rawAmount = row.querySelector(".item-amount-input").value.trim();
+                const amount = Number(rawAmount);
+                if (itemName === "" || rawAmount === "") {
+                    message.textContent = "Enter both a name and amount for every item.";
+                    (itemName === ""
+                        ? row.querySelector(".item-name-input")
+                        : row.querySelector(".item-amount-input")).focus();
+                    return;
+                }
+                if (!Number.isFinite(amount) || amount < 0) {
+                    message.textContent = "Enter a valid, non-negative amount for every item.";
+                    row.querySelector(".item-amount-input").focus();
+                    return;
+                }
+                savedItems.push({ itemName, amount });
+            }
+
+            const updatedEntries = {
+                ...entries,
+                [selectedDate]: savedItems
+            };
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(updatedEntries));
+                entries = updatedEntries;
+                message.textContent = "Amount saved.";
+                render();
+            } catch (error) {
+                message.textContent = `Could not save this amount: ${error.message}`;
+            }
+        }
+
+        function removeAmount() {
+            if (!Object.prototype.hasOwnProperty.call(entries, selectedDate)) {
+                message.textContent = "There is no saved amount for this day.";
+                return;
+            }
+
+            const updatedEntries = { ...entries };
+            delete updatedEntries[selectedDate];
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(updatedEntries));
+                entries = updatedEntries;
+                message.textContent = "Amount removed.";
+                render();
+            } catch (error) {
+                message.textContent = `Could not remove this amount: ${error.message}`;
+            }
+        }
+
+        document.getElementById("previous-month").addEventListener("click", () => {
+            displayedMonth = new Date(
+                displayedMonth.getFullYear(),
+                displayedMonth.getMonth() - 1,
+                1
+            );
+            selectedDate = formatDateKey(displayedMonth);
+            message.textContent = "";
+            render();
+        });
+
+        document.getElementById("next-month").addEventListener("click", () => {
+            displayedMonth = new Date(
+                displayedMonth.getFullYear(),
+                displayedMonth.getMonth() + 1,
+                1
+            );
+            selectedDate = formatDateKey(displayedMonth);
+            message.textContent = "";
+            render();
+        });
+
+        saveButton.addEventListener("click", saveAmount);
+        analysisToggle.addEventListener("click", () => {
+            const isExpanded = analysisToggle.getAttribute("aria-expanded") === "true";
+            analysisToggle.setAttribute("aria-expanded", String(!isExpanded));
+            analysisSection.hidden = isExpanded;
+        });
+        document.getElementById("add-item").addEventListener("click", () => {
+            addItemRow();
+            itemRows.lastElementChild.querySelector(".item-name-input").focus();
+        });
+        deleteButton.addEventListener("click", removeAmount);
+
+        loadEntries();
+        render();
+    </script>
+</body>
+</html>
